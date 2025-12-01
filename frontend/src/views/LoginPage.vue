@@ -35,7 +35,7 @@
             <div class="logo">
               <i class="fas fa-home"></i>
             </div>
-            <h1 class="brand-title">ResidenceSora</h1>
+            <h1 class="brand-title">SoraResidence</h1>
             <p class="brand-tagline">
               Rumah Sewa Pelajar, Semuanya Di Sini.
             </p>
