@@ -363,7 +363,7 @@ export default {
 
     // 🌐 Google OAuth
     const googleSignIn = () => {
-      const backendURL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
+      const backendURL = import.meta.env.VITE_API_BASE_URL || 'https://tapahhomebased-production.up.railway.app'
       window.location.href = `${backendURL}/auth/google`
     }
 
