@@ -1,30 +1,81 @@
-/vendor/
+# ===========================
+# Global ignores
+# ===========================
+.DS_Store
+Thumbs.db
+
+# ===========================
+# Root-level ignores
+# ===========================
 node_modules/
 npm-debug.log
 yarn-error.log
+*.zip
+*.tar
+*.gz
+*.rar
+*.7z
 
-# Laravel 4 specific
+# ===========================
+# Frontend ignores (Vue)
+# ===========================
+frontend/node_modules/
+frontend/dist/
+frontend/.cache/
+frontend/npm-debug.log
+frontend/yarn-error.log
+frontend/.env
+frontend/.env.*
+frontend/.vite/
+frontend/.vite/deps/
+
+
+
+
+
+# ===========================
+# Backend ignores (Laravel)
+# ===========================
+backend/vendor/
+backend/node_modules/
+backend/public/build/
+backend/public/hot/
+backend/public/storage
+backend/public/mix-manifest.json
+
+backend/storage/*.key
+backend/storage/logs/
+backend/storage/framework/
+backend/storage/app/public/
+
+backend/.env
+backend/.env.*
+
+# Ignore any environment files in root
+.env
+.env.*
+
+# ===========================
+# Laravel legacy ignores
+# ===========================
 bootstrap/compiled.php
 app/storage/
 
-# Laravel 5 & Lumen specific
+# Laravel 5 & Lumen
 public/storage
 public/hot
-
-# Laravel 5 & Lumen specific with changed public path
 public_html/storage
 public_html/hot
 
-storage/*.key
-.env
-Homestead.yaml
 Homestead.json
-/.vagrant
+Homestead.yaml
 .phpunit.result.cache
-
-/public/build
-/storage/pail
-.env.backup
-.env.production
+.vagrant
 .phpactor.json
 auth.json
+
+# ===========================
+# IDE / editor config
+# ===========================
+.vscode/
+.idea/
