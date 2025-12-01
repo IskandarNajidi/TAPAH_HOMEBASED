@@ -12,6 +12,46 @@ use App\Http\Controllers\API\PaymentController;
 
 /*
 |--------------------------------------------------------------------------
+| 🏥 Health Check
+|--------------------------------------------------------------------------
+*/
+Route::get('/health', function () {
+    try {
+        // Test database connection
+        \DB::connection()->getPdo();
+        $dbStatus = 'connected';
+        $dbType = config('database.default');
+
+        // Check if users table exists
+        $usersTableExists = \Schema::hasTable('users');
+        $userCount = $usersTableExists ? \DB::table('users')->count() : 0;
+
+        return response()->json([
+            'status' => 'healthy',
+            'app_name' => config('app.name'),
+            'environment' => config('app.env'),
+            'app_key_set' => !empty(config('app.key')),
+            'frontend_url' => config('app.frontend_url'),
+            'database' => [
+                'status' => $dbStatus,
+                'type' => $dbType,
+                'users_table_exists' => $usersTableExists,
+                'user_count' => $userCount
+            ],
+            'timestamp' => now()->toDateTimeString()
+        ], 200);
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'unhealthy',
+            'error' => $e->getMessage(),
+            'app_key_set' => !empty(config('app.key')),
+            'database_type' => config('database.default'),
+        ], 500);
+    }
+});
+
+/*
+|--------------------------------------------------------------------------
 | 🌐 Google OAuth
 |--------------------------------------------------------------------------
 */
