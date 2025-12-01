@@ -16,7 +16,7 @@ Route::get('/auth/google/callback', function () {
         $googleUser = Socialite::driver('google')->stateless()->user();
     } catch (\Exception $e) {
         Log::error('Google login failed: ' . $e->getMessage());
-        return redirect()->away('http://localhost:5173/login?error=google_failed');
+        return redirect()->away(config('app.frontend_url') . '/login?error=google_failed');
     }
 
     $user = User::updateOrCreate(
@@ -34,7 +34,7 @@ Route::get('/auth/google/callback', function () {
 
     $token = $user->createToken('auth_token')->plainTextToken;
 
-    return redirect()->away("http://localhost:5173/home?token={$token}");
+    return redirect()->away(config('app.frontend_url') . '/home?token=' . $token);
 });
 
 Route::middleware('auth:sanctum')->post('/auth/google/logout', function () {
