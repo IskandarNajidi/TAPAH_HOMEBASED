@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('room_id')->nullable();
 
             // 💳 Payment Details
-            $table->enum('payment_type', ['Per Head', 'Per Room', 'Whole House'])->nullable();
+            $table->string('payment_type', 255)->nullable();
             $table->decimal('amount', 10, 2)->nullable();
             $table->decimal('deposit', 10, 2)->nullable();
             $table->string('utility')->nullable();
