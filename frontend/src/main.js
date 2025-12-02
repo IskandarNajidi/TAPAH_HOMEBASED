@@ -10,7 +10,7 @@ import './style.css' // optional if you use Tailwind or custom CSS
 // ======================================================
 
 // Use environment variable for base URL (Vite auto-detects .env)
-axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
+axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || 'https://tapahhomebased-production.up.railway.app'
 
 // Sanctum (token-based), so no need for credentials or CSRF cookie
 axios.defaults.withCredentials = false
