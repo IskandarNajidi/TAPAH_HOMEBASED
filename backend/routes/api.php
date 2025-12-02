@@ -105,4 +105,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/properties/{property}/additional-rooms', [PropertyController::class, 'storeAdditionalRooms']);
     Route::put('/additional-rooms/{id}', [PropertyController::class, 'updateAdditionalRoom']);
     Route::delete('/additional-rooms/{id}', [PropertyController::class, 'destroyAdditionalRoom']);
+
+
 });

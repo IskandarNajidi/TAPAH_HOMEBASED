@@ -45,3 +45,7 @@ Route::middleware('auth:sanctum')->post('/auth/google/logout', function () {
     }
     return response()->json(['message' => 'Logged out successfully']);
 });
+
+Route::get('/', function () {
+    return view('welcome');
+});
