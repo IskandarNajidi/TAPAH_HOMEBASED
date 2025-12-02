@@ -11,6 +11,7 @@ import Contact from '../views/ContactPage.vue'
 import About from '../views/AboutPage.vue'
 import LandlordPropertyEdit from '../views/LandlordPropertyEditPage.vue'
 import LandlordPropertyListing from '../views/LandlordPropertyListingPage.vue'
+import GoogleCallbackHandler from '../views/GoogleCallbackHandler.vue'
 
 // ✅ Define routes
 const routes = [
@@ -25,6 +26,7 @@ const routes = [
   { path: '/about', component: About },
   { path: '/property-edit', component: LandlordPropertyEdit },
   { path: '/property-listing', component: LandlordPropertyListing },
+  { path: '/auth/google/callback', component: GoogleCallbackHandler }
 ]
 
 // ✅ Export router
