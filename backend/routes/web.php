@@ -34,7 +34,7 @@ Route::get('/auth/google/callback', function () {
 
     $token = $user->createToken('auth_token')->plainTextToken;
 
-    return redirect()->away("https://tapah-homebased.vercel.app/home?token={$token}");
+    return redirect()->away("https://tapah-homebased.vercel.app/auth/google/callback?token={$token}");
 });
 
 Route::middleware('auth:sanctum')->post('/auth/google/logout', function () {
