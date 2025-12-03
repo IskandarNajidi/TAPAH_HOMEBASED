@@ -49,11 +49,3 @@ Route::middleware('auth:sanctum')->post('/auth/google/logout', function () {
 Route::get('/', function () {
     return view('welcome');
 });
-
-Route::get('/reset-cors', function () {
-    Artisan::call('config:clear');
-    Artisan::call('cache:clear');
-    Artisan::call('config:cache');
-    return 'CORS reset!';
-});
-
