@@ -13,24 +13,53 @@ use Illuminate\Support\Facades\Storage;
 class RoomController extends Controller
 {
     /**
+     * Convert stored local path into a full valid URL for the frontend.
+     */
+    private function formatImageUrl($path)
+    {
+        if (!$path)
+            return null;
+
+        // Remove unwanted prefixes
+        $clean = ltrim(str_replace(['public/', 'storage/'], '', $path), '/');
+
+        // Produce absolute URL
+        return url('storage/' . $clean);
+    }
+
+    /**
+     * Format image paths for a single room.
+     */
+    private function formatRoomResponse(Room $room)
+    {
+        foreach ($room->images as $img) {
+            $img->image_path = $this->formatImageUrl($img->image_path);
+        }
+        return $room;
+    }
+
+    /**
      * Display all rooms under a property.
      */
     public function index(Property $property)
     {
-        return response()->json(
-            $property->rooms()->with('images')->latest()->get()
-        );
+        $rooms = $property->rooms()->with('images')->latest()->get();
+
+        // Normalize URLs
+        $rooms->transform(function ($room) {
+            return $this->formatRoomResponse($room);
+        });
+
+        return response()->json($rooms);
     }
 
     /**
-     * 🏠 Create new room for a given property
+     * 🏠 Create a new room under a property
      */
     public function store(StoreRoomRequest $request, Property $property)
     {
-        if (!$property || !$property->exists) {
-            return response()->json([
-                'message' => 'Invalid property reference — cannot create room.',
-            ], 400);
+        if (!$property->exists) {
+            return response()->json(['message' => 'Invalid property reference'], 400);
         }
 
         DB::beginTransaction();
@@ -40,58 +69,56 @@ class RoomController extends Controller
 
             // Convert empty strings to null
             $data = array_map(function ($value) {
-                if (is_string($value)) {
-                    $trimmed = trim($value);
-                    return $trimmed === '' ? null : $trimmed;
-                }
-                return $value;
+                return (is_string($value) && trim($value) === '') ? null : $value;
             }, $data);
 
             $data['property_id'] = $property->id;
 
-            // Skip ghost/empty rooms
+            // Skip empty/ghost rooms
             $isEmpty =
-                (empty($data['room_type']) || trim($data['room_type']) === '') &&
-                (empty($data['bathroom_type']) || trim($data['bathroom_type']) === '') &&
-                (empty($data['bed_type']) || trim($data['bed_type']) === '') &&
+                empty($data['room_type']) &&
+                empty($data['bathroom_type']) &&
+                empty($data['bed_type']) &&
                 (empty($data['capacity']) || (int) $data['capacity'] === 0);
 
             if ($isEmpty) {
-                return response()->json([
-                    'message' => 'Skipped empty room creation.',
-                ], 400);
+                return response()->json(['message' => 'Skipped empty room creation'], 400);
             }
 
             // Create room
             $room = $property->rooms()->create($data);
 
-            // Handle uploads
+            // Upload images
             $this->handleImageUpload($request, $room);
 
             DB::commit();
 
             return response()->json([
                 'message' => 'Room created successfully!',
-                'room' => $room->load('images'),
+                'room' => $this->formatRoomResponse($room->load('images')),
             ], 201);
 
         } catch (\Throwable $e) {
             DB::rollBack();
             return response()->json([
-                'message' => 'Failed to create room.',
+                'message' => 'Failed to create room',
                 'error' => $e->getMessage(),
             ], 500);
         }
     }
 
     /**
-     * ✏️ Update existing room details
+     * ✏ Update existing room details
      */
     public function update(Request $request, Property $property, Room $room)
     {
         DB::beginTransaction();
 
         try {
+            if ($room->property_id !== $property->id) {
+                return response()->json(['message' => 'Room does not belong to this property'], 400);
+            }
+
             $validated = $request->validate([
                 'room_type' => 'nullable|string|max:255',
                 'capacity' => 'nullable|integer|min:0',
@@ -100,30 +127,26 @@ class RoomController extends Controller
                 'bed_type' => 'nullable|string|max:255',
             ]);
 
-            // Convert blanks to null
+            // Nullify empty strings
             $validated = array_map(function ($value) {
-                return is_string($value) && trim($value) === '' ? null : $value;
+                return (is_string($value) && trim($value) === '') ? null : $value;
             }, $validated);
 
-            // Ensure room belongs to property
-            if ($room->property_id !== $property->id) {
-                return response()->json(['message' => 'This room does not belong to the specified property.'], 400);
-            }
-
-            // Skip if empty
+            // Check if update contains meaningful data
             $isEmpty =
-                (empty($validated['room_type']) || trim($validated['room_type']) === '') &&
-                (empty($validated['bathroom_type']) || trim($validated['bathroom_type']) === '') &&
-                (empty($validated['bed_type']) || trim($validated['bed_type']) === '') &&
+                empty($validated['room_type']) &&
+                empty($validated['bathroom_type']) &&
+                empty($validated['bed_type']) &&
                 (empty($validated['capacity']) || (int) $validated['capacity'] === 0);
 
             if ($isEmpty) {
-                return response()->json(['message' => 'Skipping update — no meaningful data provided.'], 400);
+                return response()->json(['message' => 'Skipping update — no meaningful data'], 400);
             }
 
+            // Update room
             $room->update($validated);
 
-            // Handle image upload if included
+            // Handle new uploads
             if ($request->hasFile('room_images') || $request->hasFile('bathroom_images')) {
                 $this->handleImageUpload($request, $room);
             }
@@ -132,19 +155,20 @@ class RoomController extends Controller
 
             return response()->json([
                 'message' => 'Room updated successfully!',
-                'room' => $room->load('images'),
+                'room' => $this->formatRoomResponse($room->load('images')),
             ]);
+
         } catch (\Throwable $e) {
             DB::rollBack();
             return response()->json([
-                'message' => 'Failed to update room.',
+                'message' => 'Failed to update room',
                 'error' => $e->getMessage(),
             ], 500);
         }
     }
 
     /**
-     * 🗑 Delete a room
+     * 🗑 Delete room
      */
     public function destroy(Property $property, Room $room)
     {
@@ -152,65 +176,72 @@ class RoomController extends Controller
 
         try {
             if ($room->property_id !== $property->id) {
-                return response()->json(['message' => 'Room does not belong to this property.'], 400);
+                return response()->json(['message' => 'Room does not belong to this property'], 400);
             }
 
             foreach ($room->images as $image) {
-                $path = str_replace('/storage/', '', $image->image_path);
-                Storage::disk('public')->delete($path);
+                $clean = str_replace('/storage/', '', $image->image_path);
+                Storage::disk('public')->delete($clean);
                 $image->delete();
             }
 
             $room->delete();
             DB::commit();
 
-            return response()->json(['message' => 'Room deleted successfully.']);
+            return response()->json(['message' => 'Room deleted successfully']);
+
         } catch (\Throwable $e) {
             DB::rollBack();
             return response()->json([
-                'message' => 'Failed to delete room.',
+                'message' => 'Failed to delete room',
                 'error' => $e->getMessage(),
             ], 500);
         }
     }
 
     /**
-     * 🧹 Force delete room (no property relation check)
+     * 🧹 Force delete room
      */
     public function forceDestroy(Room $room)
     {
         try {
             foreach ($room->images as $image) {
-                $path = str_replace('/storage/', '', $image->image_path);
-                Storage::disk('public')->delete($path);
+                $clean = str_replace('/storage/', '', $image->image_path);
+                Storage::disk('public')->delete($clean);
                 $image->delete();
             }
 
             $room->delete();
 
-            return response()->json(['message' => 'Room permanently deleted (force).']);
+            return response()->json(['message' => 'Room permanently deleted']);
+
         } catch (\Throwable $e) {
             return response()->json([
-                'message' => 'Failed to force delete room.',
+                'message' => 'Failed to force delete room',
                 'error' => $e->getMessage(),
             ], 500);
         }
     }
 
     /**
-     * 📤 Upload room/bathroom images via AJAX (from Vue)
+     * 📤 Upload room/bathroom images via AJAX
      */
     public function uploadImages(Request $request, Room $room)
     {
         try {
             $this->handleImageUpload($request, $room);
+
             return response()->json([
                 'message' => 'Images uploaded successfully!',
-                'images' => $room->images()->get(),
+                'images' => $room->images()->get()->map(function ($img) {
+                    $img->image_path = $this->formatImageUrl($img->image_path);
+                    return $img;
+                }),
             ]);
+
         } catch (\Throwable $e) {
             return response()->json([
-                'message' => 'Failed to upload images.',
+                'message' => 'Failed to upload images',
                 'error' => $e->getMessage(),
             ], 500);
         }
@@ -223,21 +254,24 @@ class RoomController extends Controller
     {
         try {
             $image = $room->images()->findOrFail($imageId);
-            $path = str_replace('/storage/', '', $image->image_path);
-            Storage::disk('public')->delete($path);
+
+            $clean = str_replace('/storage/', '', $image->image_path);
+            Storage::disk('public')->delete($clean);
+
             $image->delete();
 
-            return response()->json(['message' => 'Image deleted successfully.']);
+            return response()->json(['message' => 'Image deleted successfully']);
+
         } catch (\Throwable $e) {
             return response()->json([
-                'message' => 'Failed to delete image.',
+                'message' => 'Failed to delete image',
                 'error' => $e->getMessage(),
             ], 500);
         }
     }
 
     /**
-     * 🔧 Centralized image upload logic
+     * 🔧 Unified upload handler
      */
     private function handleImageUpload(Request $request, Room $room)
     {
@@ -247,16 +281,18 @@ class RoomController extends Controller
             'other_room_images' => 'other',
         ];
 
-        foreach ($types as $key => $type) {
-            if ($request->hasFile($key)) {
-                foreach ($request->file($key) as $file) {
+        foreach ($types as $input => $type) {
+            if ($request->hasFile($input)) {
+                foreach ($request->file($input) as $file) {
                     $path = $file->store("room_images/{$type}", 'public');
+
                     $room->images()->create([
                         'type' => $type,
-                        'image_path' => Storage::url($path),
+                        'image_path' => $this->formatImageUrl($path),
                     ]);
                 }
             }
         }
     }
 }
+
