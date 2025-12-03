@@ -990,7 +990,7 @@ async function fetchProperties() {
             ? imgs.map(i =>
                 i.startsWith('http')
                   ? i
-                  : `http://127.0.0.1:8000${String(i).replace(/\\/g, '')}`
+                  : `https://tapahhomebased-production.up.railway.app${String(i).replace(/\\/g, '')}`
               )
             : []
 
@@ -1004,7 +1004,7 @@ async function fetchProperties() {
                   if (img.image_path) {
                     const url = img.image_path.startsWith('http')
                       ? img.image_path
-                      : `http://127.0.0.1:8000${String(img.image_path).replace(/\\/g, '')}`
+                      : `https://tapahhomebased-production.up.railway.app${String(img.image_path).replace(/\\/g, '')}`
                     imagesArray.push(url)
                   }
                 })
@@ -1018,7 +1018,7 @@ async function fetchProperties() {
               if (room.image_path) {
                 const url = room.image_path.startsWith('http')
                   ? room.image_path
-                  : `http://127.0.0.1:8000${String(room.image_path).replace(/\\/g, '')}`
+                  : `https://tapahhomebased-production.up.railway.app${String(room.image_path).replace(/\\/g, '')}`
                 imagesArray.push(url)
               }
             })
@@ -1126,7 +1126,7 @@ async function openProperty(property) {
       if (r.image_path) {
         imageUrl = r.image_path.startsWith('http')
           ? r.image_path
-          : `http://127.0.0.1:8000${r.image_path}`
+          : `https://tapahhomebased-production.up.railway.app${r.image_path}`
       }
       
       return {
@@ -1514,7 +1514,7 @@ function formatImageUrl(path) {
   if (!path) return '/default-room.jpg'
   return path.startsWith('http')
     ? path
-    : `http://127.0.0.1:8000${String(path).replace(/\\/g, '')}`
+    : `https://tapahhomebased-production.up.railway.app${String(path).replace(/\\/g, '')}`
 }
 
 // ✅ UPDATED: Save All Changes with Loading Animation
