@@ -767,7 +767,7 @@ function formatImageUrl(path) {
   if (!path) return '/default-house.jpg'
   return path.startsWith('http')
     ? path
-    : `http://127.0.0.1:8000${String(path).replace(/\\/g, '')}`
+    : `https://tapahhomebased-production.up.railway.app${String(path).replace(/\\/g, '')}`
 }
 
 // Toast notification
