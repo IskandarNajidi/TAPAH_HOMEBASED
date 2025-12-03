@@ -6,18 +6,23 @@ return [
     |--------------------------------------------------------------------------
     | Cross-Origin Resource Sharing (CORS) Configuration
     |--------------------------------------------------------------------------
-    |
-    | Configure which paths and domains are allowed to make cross-origin
-    | requests to your Laravel app. These settings are essential for
-    | frontend-backend setups like Vue + Laravel.
-    |
     */
 
-    'paths' => ['api/*', 'auth/*', 'sanctum/csrf-cookie'],
+    // IMPORTANT: Must list all endpoints your frontend hits
+    'paths' => [
+        'api/*',
+        'auth/*',
+        'sanctum/csrf-cookie',
+        'storage/*',                     // <-- REQUIRED for images served from /storage
+    ],
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [env('FRONTEND_URL', 'https://tapah-homebased.vercel.app')],
+    // Allow only your production frontend + local dev
+    'allowed_origins' => [
+        'https://tapah-homebased.vercel.app',
+        'http://localhost:5173',
+    ],
 
     'allowed_origins_patterns' => [],
 
@@ -27,7 +32,6 @@ return [
 
     'max_age' => 0,
 
-    // IMPORTANT: must be true for cookies/session to work
-    'supports_credentials' => true,
-
+    // Must be false unless you are using cookies/sessions from frontend
+    'supports_credentials' => false,
 ];
