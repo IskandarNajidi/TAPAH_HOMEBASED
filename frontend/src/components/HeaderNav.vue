@@ -48,13 +48,6 @@
         <router-link to="/profile" class="nav-item">Akaun</router-link>
       </template>
 
-      <!-- Default for guest / undefined user -->
-      <template v-else>
-        <router-link to="/home" class="nav-item">Laman Utama</router-link>
-        <router-link to="/about" class="nav-item">Tentang Kami</router-link>
-        <router-link to="/login" class="nav-item">Login</router-link>
-      </template>
-
       <div class="user-info" v-if="user && user.role !== 'guest'">
         <div class="user-role">{{ user.role }}</div>
         <button class="logout-btn" @click="logout">Logout</button>
