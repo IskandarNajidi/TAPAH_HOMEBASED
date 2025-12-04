@@ -348,7 +348,7 @@ async function fetchLandlords() {
           if (typeof i === 'string') {
             return i.startsWith('http') 
               ? i 
-              : `http://127.0.0.1:8000${String(i).replace(/\\/g, '/')}`
+              : `https://tapahhomebased-production.up.railway.app${String(i).replace(/\\/g, '/')}`
           }
           return i
         })

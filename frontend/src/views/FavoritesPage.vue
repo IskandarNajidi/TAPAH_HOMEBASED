@@ -345,7 +345,7 @@ async function fetchFavorites() {
             try { imgs = JSON.parse(imgs) } catch {}
           }
           let imagesArray = Array.isArray(imgs)
-            ? imgs.map(i => i.startsWith('http') ? i : `http://127.0.0.1:8000${String(i).replace(/\\/g, '')}`)
+            ? imgs.map(i => i.startsWith('http') ? i : `https://tapahhomebased-production.up.railway.app${String(i).replace(/\\/g, '')}`)
             : []
 
           // Fetch room images
@@ -359,7 +359,7 @@ async function fetchFavorites() {
                   if (img.image_path) {
                     const url = img.image_path.startsWith('http')
                       ? img.image_path
-                      : `http://127.0.0.1:8000${String(img.image_path).replace(/\\/g, '')}`
+                      : `https://tapahhomebased-production.up.railway.app${String(img.image_path).replace(/\\/g, '')}`
                     imagesArray.push(url)
                   }
                 })
